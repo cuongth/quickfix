@@ -252,6 +252,7 @@ AC_CONFIG_FILES([
     examples/executor/C++/Makefile
     examples/ordermatch/Makefile
     examples/tradeclient/Makefile
+    examples/icmarketsclient/Makefile
     doc/Makefile
     doc/html/Makefile ])
 AC_OUTPUT
