@@ -71,6 +71,7 @@ private:
   TargetCompID queryTargetCompID();
   TargetSubID queryTargetSubID();
   bool queryConfirm( const string& query );
+  FIX44::MarketDataRequest queryMarketDataRequest44();
 
 public:
   FixApp();
@@ -102,7 +103,8 @@ public:
   void MarketOrder();
   string NextRequestID();
   void RecordAccount(string accountID);
-  void queryMarketDataRequest44();
+  void queryMarketDataRequest();
+
 };
 
 #endif // FIXAPP_H

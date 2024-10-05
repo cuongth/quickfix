@@ -1,4 +1,5 @@
 #include "FixApp.h"
+#include "quickfix/Session.h"
 
 // Returns SessionID - MarketData for md = true, Trading fr md = false
 SessionID FixApp::sessionID(bool md)
@@ -25,8 +26,8 @@ void FixApp::onCreate(const SessionID& session_ID)
 
 void FixApp::onLogon(const SessionID& session_ID)
 {
-  cout << "Session -> logon" << endl;
-  GetTradingStatus();
+  cout << "Session -> logon [cuongth] disable GetTradingStatus" << endl;
+  //GetTradingStatus();
 }
 
 void FixApp::onLogout(const SessionID& session_ID)
@@ -151,7 +152,7 @@ void FixApp::onMessage(const FIX44::MarketDataSnapshotFullRefresh& mds, const Se
   double bid_price = 0;
   double ask_price = 0;
   int entry_count = IntConvertor::convert(mds.getField(FIELD::NoMDEntries));
-  for(int i = 1; i < entry_count; i++)
+  for(int i = 1; i <= entry_count; i++)
   {
     FIX44::MarketDataSnapshotFullRefresh::NoMDEntries group;
     mds.getGroup(i,group);
@@ -165,8 +166,8 @@ void FixApp::onMessage(const FIX44::MarketDataSnapshotFullRefresh& mds, const Se
       ask_price = DoubleConvertor::convert(group.getField(FIELD::MDEntryPx));
     }
   }
-  cout << "MarketDataSnapshotFullRefresh -> Symbol - " << symbol
-       << " Bid - " << bid_price << " Ask - " << ask_price << endl;
+  cout << "MarketDataSnapshotFullRefresh -> Symbol:" << symbol
+       << " Bid " << bid_price << " Ask " << ask_price << endl;
 }
 
 void FixApp::onMessage(const FIX44::ExecutionReport& er, const SessionID& session_ID)
@@ -209,11 +210,17 @@ void FixApp::EndSession()
 
 void FixApp::GetTradingStatus()
 {
-  FIX44::TradingSessionStatusRequest request;
+  /*FIX44::TradingSessionStatusRequest request;
   request.setField(TradSesReqID(NextRequestID()));
   request.setField(TradingSessionID("PRE-OPEN"));
   request.setField(SubscriptionRequestType(SubscriptionRequestType_SNAPSHOT));
-  Session::sendToTarget(request, sessionID(false));
+  Session::sendToTarget(request, sessionID(false));*/
+
+  // TODO Message 35=g is not supported by cTrader FIX API.
+  // https://ctrader.com/forum/fix-api/45120/
+  // queryMarketDataRequest44 can send Message 35=V
+  // to get MarketDataSnapshot of Symbol("2") GBPUSD
+  // https://help.ctrader.com/fix/specification/#market-data-request-msgtype35v
 }
 
 void FixApp::GetAccounts()
@@ -256,30 +263,45 @@ void FixApp::GetPositions()
   }
 }
 
-void FixApp::queryMarketDataRequest44()
+void FixApp::queryMarketDataRequest()
 {
-  MDReqID mdReqID( "MARKETDATAID" );
-  SubscriptionRequestType subType( SubscriptionRequestType_SNAPSHOT );
-  MarketDepth marketDepth( 0 );
-  FIX44::MarketDataRequest::NoMDEntryTypes marketDataEntryGroup;
-  MDEntryType mdEntryType( MDEntryType_BID );
-  marketDataEntryGroup.set( mdEntryType );
+  Message md = queryMarketDataRequest44();
+  Session::sendToTarget(md, sessionID(false));
+}
 
-  FIX44::MarketDataRequest::NoRelatedSym symbolGroup;
-  Symbol symbol("EUR/USD");
-  symbolGroup.set( symbol );
+FIX44::MarketDataRequest FixApp::queryMarketDataRequest44()
+{
+  FIX::MDReqID mdReqID( "HACKED" );
+  FIX::SubscriptionRequestType subType( FIX::SubscriptionRequestType_SNAPSHOT_AND_UPDATES );
+  FIX::MarketDepth marketDepth( 1 );
+
+  //FIX44::MarketDataRequest::NoMDEntryTypes marketDataEntryGroup;
+  //FIX::MDEntryType mdEntryB( FIX::MDEntryType_BID );
+  //marketDataEntryGroup.set( mdEntryB );
+
+
+  //FIX44::MarketDataRequest::NoRelatedSym symbolGroup;
+  //FIX::Symbol symbol( "1" );
+  //symbolGroup.set( symbol );
 
   FIX44::MarketDataRequest message( mdReqID, subType, marketDepth );
+
+  FIX44::MarketDataRequest::NoMDEntryTypes marketDataEntryGroup;
+  marketDataEntryGroup.setField(MDEntryType(MDEntryType_BID));
   message.addGroup( marketDataEntryGroup );
-  message.addGroup( symbolGroup );
+  marketDataEntryGroup.setField(MDEntryType(MDEntryType_OFFER));
+  message.addGroup(marketDataEntryGroup);
+
+  FIX44::MarketDataRequest::NoRelatedSym symbolGroup;
+  symbolGroup.setField(Symbol("2")); // GBPUSD
+  message.addGroup(symbolGroup);
 
   queryHeader( message.getHeader() );
 
-  cout << "[cuongth] request market data:\n"
-       << message.toXML() << '\n'
-       << message.toString() << endl;
+  std::cout << message.toXML() << std::endl;
+  std::cout << message.toString() << std::endl;
 
-  Session::sendToTarget( message );
+  return message;
 }
 
 void FixApp::SubscribeMarketData()

@@ -22,7 +22,7 @@ int main(int argc, char** argv)
          << " 2 to subscribe market data\n"
          << " 3 to unsubscribe market data\n"
          << " 4 to send marke order\n"
-         << " 5 request market data of EUR/USD.\n";
+         << " 5 request market data of GBP/USD.\n";
     cin >> command;
 
     switch(command)
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
         app.MarketOrder();
         break;
       case 5: // Request market data
-        app.queryMarketDataRequest44();
+        app.queryMarketDataRequest();
         break;
     }
     if(exit)
