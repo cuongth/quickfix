@@ -22,7 +22,6 @@
 #include "quickfix/fix44/TradingSessionStatus.h"
 #include "quickfix/fix44/TradingSessionStatusRequest.h"
 #include "quickfix/MessageCracker.h"
-#include "quickfix/Session.h"
 #include "quickfix/SessionID.h"
 #include "quickfix/SessionSettings.h"
 #include "quickfix/SocketInitiator.h"

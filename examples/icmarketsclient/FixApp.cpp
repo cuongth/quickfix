@@ -6,7 +6,7 @@ SessionID FixApp::sessionID(bool md)
 {
   for (auto session : sessions)
   {
-    // for FXCM MarketData sessions begin with MD_
+    // FIXME: MarketData sessions begin with MD_
     if ((session.toString().find("MD_") != string::npos) == md)
       return session;
   }
@@ -20,20 +20,24 @@ FixApp::FixApp()
 
 void FixApp::onCreate(const SessionID& session_ID)
 {
-  cout << "Session -> created" << endl;
+  cout << "Session -> created. Qualifier = "
+       << session_ID.getSessionQualifier()
+       << " toString: " << session_ID.toString() << endl;
   sessions.push_back(session_ID);
 }
 
 void FixApp::onLogon(const SessionID& session_ID)
 {
-  cout << "Session -> logon [cuongth] disable GetTradingStatus" << endl;
+  cout << "Session -> valid logon message. Qualifier = "
+       << session_ID.getSessionQualifier() << endl;
   //GetTradingStatus();
 }
 
 void FixApp::onLogout(const SessionID& session_ID)
 {
   // Session logout
-  cout << "Session -> logout" << endl;
+  cout << "Session -> logout. Qualifier = "
+       << session_ID.getSessionQualifier() << endl;
 }
 
 void FixApp::toAdmin(Message& message, const SessionID& session_ID)
@@ -52,6 +56,7 @@ void FixApp::toAdmin(Message& message, const SessionID& session_ID)
 
 void FixApp::toApp(Message& message, const SessionID& session_ID)
 {
+  // before sending
   string sub_ID = settings->get(session_ID).getString("TargetSubID");
   message.getHeader().setField(TargetSubID(sub_ID));
   cout << "[cuongth] set TargetSubID=" << sub_ID << endl;
@@ -59,6 +64,7 @@ void FixApp::toApp(Message& message, const SessionID& session_ID)
 
 void FixApp::fromAdmin(const Message& message, const SessionID& session_ID)
 {
+  // receiving message
   crack(message, session_ID);
 }
 
@@ -193,7 +199,7 @@ void FixApp::StartSession(string &file)
     initiator = new SocketInitiator(* this, * store_factory, * settings, * log_factory/*Optional*/);
     initiator->start();
   }
-  catch(ConfigError error)
+  catch(ConfigError &error)
   {
     cout << error.what() << endl;
   }
