@@ -139,10 +139,8 @@ void SocketInitiator::doConnect( const SessionID& s, const Dictionary& d )
     Log* log = session->getLog();
 
     HostDetails host = m_hostDetailsProvider.getHost( s, d);
-    if( d.has( RECONNECT_INTERVAL ) ) {
-      // ReconnectInterval in [SESSION]
+    if( d.has( RECONNECT_INTERVAL ) ) // ReconnectInterval in [SESSION]
       m_reconnectInterval = d.getInt( RECONNECT_INTERVAL );
-    }
 
     log->onEvent( "Connecting to " + host.address + " on port "
       + IntConvertor::convert((unsigned short)host.port)
