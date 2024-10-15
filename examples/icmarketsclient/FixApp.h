@@ -38,7 +38,7 @@ private:
   SocketInitiator  *initiator;
 
   unsigned int requestID;
-  SessionID sessionID(bool md);
+  SessionID sessionID(const string &);
   vector<SessionID> sessions;
   vector<string> list_accountID;
 
@@ -70,7 +70,7 @@ private:
   TargetCompID queryTargetCompID();
   TargetSubID queryTargetSubID();
   bool queryConfirm( const string& query );
-  FIX44::MarketDataRequest queryMarketDataRequest44();
+  FIX44::MarketDataRequest queryMarketDataRequest44(bool);
 
 public:
   FixApp();
@@ -102,7 +102,7 @@ public:
   void MarketOrder();
   string NextRequestID();
   void RecordAccount(string accountID);
-  void queryMarketDataRequest();
+  void queryMarketDataRequest(bool);
 
 };
 

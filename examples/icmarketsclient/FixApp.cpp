@@ -1,13 +1,13 @@
 #include "FixApp.h"
 #include "quickfix/Session.h"
 
-// Returns SessionID - MarketData for md = true, Trading fr md = false
-SessionID FixApp::sessionID(bool md)
+// Returns SessionID based on Qualifier
+SessionID FixApp::sessionID(const string & qualifier)
 {
   for (auto session : sessions)
   {
-    // FIXME: MarketData sessions begin with MD_
-    if ((session.toString().find("MD_") != string::npos) == md)
+    const string q = session.getSessionQualifier();
+    if (!q.compare(qualifier))
       return session;
   }
   return SessionID();
@@ -59,7 +59,6 @@ void FixApp::toApp(Message& message, const SessionID& session_ID)
   // before sending
   string sub_ID = settings->get(session_ID).getString("TargetSubID");
   message.getHeader().setField(TargetSubID(sub_ID));
-  cout << "[cuongth] set TargetSubID=" << sub_ID << endl;
 }
 
 void FixApp::fromAdmin(const Message& message, const SessionID& session_ID)
@@ -235,7 +234,7 @@ void FixApp::GetAccounts()
   request.setField(CollInquiryID(NextRequestID()));
   request.setField(TradingSessionID("FXCM"));
   request.setField(SubscriptionRequestType(SubscriptionRequestType_SNAPSHOT));
-  Session::sendToTarget(request, sessionID(false));
+  Session::sendToTarget(request, sessionID("QUOTE"));
 }
 
 void FixApp::GetPositions()
@@ -265,20 +264,26 @@ void FixApp::GetPositions()
     sub_parties.setField(PartySubID(accountID));
     parties_group.addGroup(sub_parties);
     request.addGroup(parties_group);
-    Session::sendToTarget(request, sessionID(false));
+    Session::sendToTarget(request, sessionID("QUOTE"));
   }
 }
 
-void FixApp::queryMarketDataRequest()
+void FixApp::queryMarketDataRequest(bool subscribed)
 {
-  Message md = queryMarketDataRequest44();
-  Session::sendToTarget(md, sessionID(false));
+  Message md = queryMarketDataRequest44(subscribed);
+  Session::sendToTarget(md, sessionID("QUOTE"));
 }
 
-FIX44::MarketDataRequest FixApp::queryMarketDataRequest44()
+FIX44::MarketDataRequest FixApp::queryMarketDataRequest44(bool subscribed)
 {
   FIX::MDReqID mdReqID( "HACKED" );
-  FIX::SubscriptionRequestType subType( FIX::SubscriptionRequestType_SNAPSHOT_AND_UPDATES );
+  char requestType;
+  if (subscribed)
+    requestType = FIX::SubscriptionRequestType_SNAPSHOT_AND_UPDATES;
+  else
+    requestType = FIX::SubscriptionRequestType_DISABLE_PREVIOUS_SNAPSHOT;
+  FIX::SubscriptionRequestType subType( requestType );
+  // marketDepth: 0 = Depth subscription; 1 = Spot subscription.
   FIX::MarketDepth marketDepth( 1 );
 
   //FIX44::MarketDataRequest::NoMDEntryTypes marketDataEntryGroup;
@@ -301,11 +306,11 @@ FIX44::MarketDataRequest FixApp::queryMarketDataRequest44()
   FIX44::MarketDataRequest::NoRelatedSym symbolGroup;
   symbolGroup.setField(Symbol("2")); // GBPUSD
   message.addGroup(symbolGroup);
-
-  queryHeader( message.getHeader() );
-
-  std::cout << message.toXML() << std::endl;
-  std::cout << message.toString() << std::endl;
+  // cuongth: don't need to input SenderCompID and TargetCompID.
+  // we get it from configuration of SessionID based on Qualifier.
+  //queryHeader( message.getHeader() );
+  //std::cout << message.toXML() << std::endl;
+  //std::cout << message.toString() << std::endl;
 
   return message;
 }
@@ -334,7 +339,7 @@ void FixApp::SubscribeMarketData()
   entry_types.setField(MDEntryType(MDEntryType_TRADING_SESSION_LOW_PRICE));
   request.addGroup(entry_types);
 
-  Session::sendToTarget(request, sessionID(true));
+  Session::sendToTarget(request, sessionID("QUOTE"));
 }
 
 void FixApp::UnsubscribeMarketData()
@@ -361,7 +366,7 @@ void FixApp::UnsubscribeMarketData()
   entry_types.setField(MDEntryType(MDEntryType_TRADING_SESSION_LOW_PRICE));
   request.addGroup(entry_types);
 
-  Session::sendToTarget(request, sessionID(true));
+  Session::sendToTarget(request, sessionID("QUOTE"));
 }
 
 void FixApp::MarketOrder()
@@ -380,7 +385,7 @@ void FixApp::MarketOrder()
     request.setField(Side(FIX::Side_BUY));
     request.setField(OrdType(OrdType_MARKET));
     request.setField(TimeInForce(FIX::TimeInForce_GOOD_TILL_CANCEL));
-    Session::sendToTarget(request, sessionID(false));
+    Session::sendToTarget(request, sessionID("QUOTE"));
   }
 }
 
