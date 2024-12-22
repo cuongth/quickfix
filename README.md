@@ -15,6 +15,10 @@
         sudo make install
 
 For SunOS and AIX have a look at README.SunOS and README.AIX.
+--------------------------------------------------------------------
+## linux branch by cuongth
+
+    Currently I'm learning into QuickFix (via reading its issues and fix bugs) and implementing examples/icmarketsclient on Linux host.
 
 --------------------------------------------------------------------
 
