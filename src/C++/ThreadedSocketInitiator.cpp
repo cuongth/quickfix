@@ -62,7 +62,7 @@ EXCEPT ( ConfigError )
 {
   const Dictionary& dict = s.get();
 
-  if( dict.has( RECONNECT_INTERVAL ) ) \\ ReconnectInterval in [DEFAULT]
+  if( dict.has( RECONNECT_INTERVAL ) ) // ReconnectInterval in [DEFAULT]
     m_reconnectInterval = dict.getInt( RECONNECT_INTERVAL );
   if( dict.has( SOCKET_NODELAY ) )
     m_noDelay = dict.getBool( SOCKET_NODELAY );
@@ -152,10 +152,10 @@ void ThreadedSocketInitiator::doConnect( const SessionID& s, const Dictionary& d
       socket_setsockopt( socket, SO_RCVBUF, m_rcvBufSize );
 
     setPending( s );
-    log->onEvent( "Connecting to " + host.address
-      + " on port " + IntConvertor::convert((unsigned short)host.port)
-      + " (Source " + host.sourceAddress + ":" + IntConvertor::convert((unsigned short)host.sourcePort)
-      + ") ReconnectInterval=" +
+    log->onEvent( "Connecting to " + host.address + " on port " +
+      IntConvertor::convert((unsigned short)host.port) +
+      " (Source " + host.sourceAddress + ":" + IntConvertor::convert((unsigned short)host.sourcePort) +
+      ") ReconnectInterval=" +
       IntConvertor::convert((int)m_reconnectInterval));
 
     ThreadedSocketConnection* pConnection =
