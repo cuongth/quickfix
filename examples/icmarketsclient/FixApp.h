@@ -24,7 +24,7 @@
 #include "quickfix/MessageCracker.h"
 #include "quickfix/SessionID.h"
 #include "quickfix/SessionSettings.h"
-#include "quickfix/SocketInitiator.h"
+#include "quickfix/ThreadedSocketInitiator.h"
 
 using namespace std;
 using namespace FIX;
@@ -35,7 +35,7 @@ private:
   SessionSettings  *settings;
   FileStoreFactory *store_factory;
   FileLogFactory   *log_factory;
-  SocketInitiator  *initiator;
+  ThreadedSocketInitiator  *initiator;
 
   unsigned int requestID;
   SessionID sessionID(const string &);

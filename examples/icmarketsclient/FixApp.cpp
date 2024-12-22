@@ -195,7 +195,7 @@ void FixApp::StartSession(string &file)
     settings = new SessionSettings(file);
     store_factory = new FileStoreFactory(* settings);
     log_factory = new FileLogFactory(* settings);
-    initiator = new SocketInitiator(* this, * store_factory, * settings, * log_factory/*Optional*/);
+    initiator = new ThreadedSocketInitiator(* this, * store_factory, * settings, * log_factory/*Optional*/);
     initiator->start();
   }
   catch(ConfigError &error)
